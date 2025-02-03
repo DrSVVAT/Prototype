@@ -38,7 +38,7 @@ float UAIRobotComponent::Sigmoid(float Value)
     return 1.0f / (1.0f + FMath::Exp(-Value));
 }
 
-float UAIRobotComponent::FeedForward(int32 ResourceIndex)
+float UAIRobotComponent::FeedForward(int32 TargetResourceIndex)
 {
     // Входной слой -> скрытый слой
     TArray<float> HiddenLayer;
@@ -46,9 +46,9 @@ float UAIRobotComponent::FeedForward(int32 ResourceIndex)
 
     for (int32 i = 0; i < HiddenSize; ++i)
     {
+        // Считаем активацию скрытого слоя, используя только целевой ресурс
         float Activation = HiddenBiases[i];
-        Activation += WeightsInputHidden[0 * HiddenSize + i] * ResourceIndex;
-
+        Activation += WeightsInputHidden[TargetResourceIndex * HiddenSize + i];
         HiddenLayer[i] = Sigmoid(Activation);
     }
 
@@ -62,44 +62,86 @@ float UAIRobotComponent::FeedForward(int32 ResourceIndex)
     return Sigmoid(Output);
 }
 
-float UAIRobotComponent::Predict(int32 ResourceIndex)
+float UAIRobotComponent::Predict(int32 TargetResourceIndex)
 {
-    return FeedForward(ResourceIndex);
+    return FeedForward(TargetResourceIndex);
 }
 
 void UAIRobotComponent::TrainNetwork(const TArray<FResourceDataStruct>& TrainingData)
 {
     float LearningRate = 0.1f;
 
+    // Обрабатываем каждый набор данных для обучения
     for (const FResourceDataStruct& Data : TrainingData)
     {
-        // Прямой проход
+        // Прямой проход через нейронную сеть
         float PredictedOutput = FeedForward(Data.TargetResource);
 
-        // Вычисление ошибки
-        float Error = Data.UserRating - PredictedOutput;
+        // Нормализуем пользовательскую оценку (предполагаем, что максимум = 10)
+        float NormalizedRating = Data.UserRating / 10.0f;
+
+        // Вычисление ошибки с учётом пользовательской оценки
+        float Error = NormalizedRating - PredictedOutput;
         float DeltaOutput = Error * PredictedOutput * (1 - PredictedOutput);
 
         // Обновление весов выходного слоя
         TArray<float> HiddenLayer;
         HiddenLayer.SetNum(HiddenSize);
 
+        // Вычисление активации скрытого слоя
         for (int32 i = 0; i < HiddenSize; ++i)
         {
             float Activation = HiddenBiases[i];
-            Activation += WeightsInputHidden[0 * HiddenSize + i] * Data.TargetResource;
 
+            // Учёт влияния всех собранных ресурсов
+            for (int32 j = 0; j < Data.CollectedResources.Num(); ++j)
+            {
+                // Проверка на выход индекса за пределы массива
+                if (j * HiddenSize + i < WeightsInputHidden.Num())
+                {
+                    Activation += WeightsInputHidden[j * HiddenSize + i] * Data.CollectedResources[j];
+                }
+            }
+
+            // Учёт целевого ресурса
+            if (Data.CollectedResources.Num() * HiddenSize + i < WeightsInputHidden.Num())
+            {
+                Activation += WeightsInputHidden[Data.CollectedResources.Num() * HiddenSize + i] * Data.TargetResource;
+            }
+
+            // Добавляем влияние пользовательской оценки на активацию
+            Activation += NormalizedRating;
+
+            // Скрытый слой -> вычисление значения
             HiddenLayer[i] = Sigmoid(Activation);
             WeightsHiddenOutput[i] += LearningRate * DeltaOutput * HiddenLayer[i];
         }
+
         OutputBias += LearningRate * DeltaOutput;
 
         // Обновление весов скрытого слоя
         for (int32 i = 0; i < HiddenSize; ++i)
         {
             float DeltaHidden = HiddenLayer[i] * (1 - HiddenLayer[i]) * WeightsHiddenOutput[i] * DeltaOutput;
-            WeightsInputHidden[0 * HiddenSize + i] += LearningRate * DeltaHidden * Data.TargetResource;
-            HiddenBiases[i] += LearningRate * DeltaHidden;
+
+            // Обновляем веса для каждого собранного ресурса
+            for (int32 j = 0; j < Data.CollectedResources.Num(); ++j)
+            {
+                // Проверка на выход индекса за пределы массива
+                if (j * HiddenSize + i < WeightsInputHidden.Num())
+                {
+                    WeightsInputHidden[j * HiddenSize + i] += LearningRate * DeltaHidden * Data.CollectedResources[j];
+                }
+            }
+
+            // Обновляем вес для целевого ресурса
+            if (Data.CollectedResources.Num() * HiddenSize + i < WeightsInputHidden.Num())
+            {
+                WeightsInputHidden[Data.CollectedResources.Num() * HiddenSize + i] += LearningRate * DeltaHidden * Data.TargetResource;
+            }
+
+            // Добавляем влияние пользовательской оценки на обновление веса скрытого слоя
+            HiddenBiases[i] += LearningRate * DeltaHidden * NormalizedRating;
         }
     }
 }
