@@ -12,11 +12,11 @@ from collections import OrderedDict
 from importlib import import_module
 
 
-def print(*args, **kwargs):
-    with open("/Users/a2mogus/iigra/log.txt", 'a') as fd:
-        fd.write(' '.join(map(str, args)) + '\n')
-        if kwargs:
-            fd.write('kwargs ' + str(kwargs) + '\n')
+#def print(*args, **kwargs):
+#    with open("/Users/a2mogus/iigra/log.txt", 'a') as fd:
+#        fd.write(' '.join(map(str, args)) + '\n')
+#        if kwargs:
+#            fd.write('kwargs ' + str(kwargs) + '\n')
         
 
 if __name__ == '__main__':
