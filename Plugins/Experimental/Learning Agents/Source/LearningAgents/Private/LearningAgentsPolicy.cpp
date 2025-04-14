@@ -269,7 +269,7 @@ void ULearningAgentsPolicy::SetupPolicy(
 					ObservationEncodedVectorSize,
 					PolicyHiddenLayerSize,
 					PolicyHiddenLayerSize,
-					PolicyHiddenLayerNum / 2 + 2, // Add 2 to account for input and output layers
+					PolicyHiddenLayerNum / 2 + 4, // EDIT:X // Add 2 to account for input and output layers
 					UE::Learning::Agents::Policy::Private::GetBuilderActivationFunction(PolicyActivationFunction),
 					true),
 				Builder.MakeMemoryCellWithLinearRandomKaimingWeights(
@@ -282,7 +282,7 @@ void ULearningAgentsPolicy::SetupPolicy(
 						PolicyHiddenLayerSize,
 						ActionEncodedVectorSize,
 						PolicyHiddenLayerSize,
-						PolicyHiddenLayerNum / 2 + 2, // Add 2 to account for input and output layers
+						PolicyHiddenLayerNum / 2 + 4, // EDIT:X // Add 2 to account for input and output layers
 						UE::Learning::Agents::Policy::Private::GetBuilderActivationFunction(PolicyActivationFunction)),
 					Builder.MakeDenormalize(
 						ActionEncodedVectorSize,

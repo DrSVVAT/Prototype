@@ -719,7 +719,7 @@ namespace UE::Learning
 		{
 			// TODO we seem to have to sleep on Mac so the trainer can start listening before we try to connect
 			// CHANGE: was 1.0f
-			FPlatformProcess::Sleep(4.0f);
+			FPlatformProcess::Sleep(10.0f);
 		}
 	}
 

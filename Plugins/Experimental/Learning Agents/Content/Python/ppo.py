@@ -280,6 +280,8 @@ class PPOTrainer:
         
     
     def train_policy(self, mask, obs, act, mem, adv, logp, policy_window):
+
+        print("BAD LOG ||| type ", type(self.policy))
         
         # Reset Gradients
         

@@ -12,7 +12,7 @@ from collections import OrderedDict
 from importlib import import_module
 
 
-#def print(*args, **kwargs):
+# def print(*args, **kwargs):
 #    with open("/Users/a2mogus/iigra/log.txt", 'a') as fd:
 #        fd.write(' '.join(map(str, args)) + '\n')
 #        if kwargs:
@@ -22,7 +22,13 @@ from importlib import import_module
 if __name__ == '__main__':
     print('Zzzz')
     print("MOP!")
-
+    for i in range(10):
+        print("ZZZzzzZZZ\n" * 100)
+    print("ZZZzzzZZZ\n" * 100, file=sys.stderr)
+    print("ZZZzzzZZZ\n" * 100, file=sys.stderr)
+    print("ZZZZZZ")
+    print("ZZZZZZ", file=sys.stderr)
+    print("ZZZZZZ", file=sys.stderr)
 
     # TODO: Work out how to make this a little more robust
     sys.path.append(os.path.dirname(__file__) + '/../../../NNERuntimeBasicCpu/Content/Python/')
